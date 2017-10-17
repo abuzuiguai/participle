@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class AnalyzeContext {
     private ObjectMapper mapper = new ObjectMapper();
-    private double FREQUENCY_THRESHOLD = 0.1;
+    private double FREQUENCY_THRESHOLD = 0.01;
     private float LESS_COUNT = 3f;
 
     public void analyzeCHNCharacter(Map<Character, CHNCharacter> words) {
@@ -27,6 +27,9 @@ public class AnalyzeContext {
                 if (rightEntry.getValue() == null || rightCHNChar.getLeft().get(entry.getKey()) == null || rightEntry.getValue() < LESS_COUNT) {
                     continue;
                 }
+                if (entry.getKey() == '下' && rightEntry.getKey() == '胀') {
+                    System.out.println("下" + CHNChar.getCount() + "   胀" + rightEntry.getValue());
+                }
                 if (rightEntry.getValue() / CHNChar.getCount() >= FREQUENCY_THRESHOLD || rightCHNChar.getLeft().get(entry.getKey()) / rightCHNChar.getCount() >= FREQUENCY_THRESHOLD) {
                     rightFilterCharMap.put(rightEntry.getKey(), rightEntry.getValue());
                 }
@@ -34,7 +37,7 @@ public class AnalyzeContext {
             CHNChar.setRight(rightFilterCharMap);
             entry.setValue(CHNChar);
             try {
-                System.out.println(String.valueOf(entry.getKey() + ":") + mapper.writeValueAsString(entry.getValue().getRight()));
+//                System.out.println(String.valueOf(entry.getKey() + ":") + mapper.writeValueAsString(entry.getValue().getRight()));
             }catch (Exception e) {
                 e.printStackTrace();
             }
