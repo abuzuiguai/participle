@@ -1,5 +1,6 @@
 package com.iharding.participle.cfg;
 
+import com.iharding.participle.core.Segment;
 import com.iharding.participle.util.CharacterUtil;
 import org.springframework.util.StringUtils;
 
@@ -24,45 +25,68 @@ public class DefaultConfig implements Configuration {
     private Map<Integer, Character> chars = new HashMap<Integer, Character>(100, 0.75f);
     private Integer charsKey;
 
+    Segment segment;
+
     public List<Character[]> loadAnalyticalFile(String path) {
+        List<char[]> fileContents = readFileContents(path);
+        int i = 0;
+        int length = fileContents.size();
+        for (i = 0; i < length; i++) {
+            cleanChars(fileContents.get(i));
+        }
+        return contents;
+    }
+
+    public Segment loadMainDict(String path) {
+        List<char[]> fileContents = readFileContents(path);
+        int i = 0;
+        int length = fileContents.size();
+
+        segment = new Segment(Character.valueOf('0'));
+        char[] chars;
+        for (i = 0; i < length; i++) {
+            chars = fileContents.get(i);
+            segment.fill(chars, 0, chars.length);
+        }
+        return segment;
+    }
+
+    public List<char[]> readFileContents(String path) {
         InputStream is = null;
+        List<char[]> fileContents = new ArrayList<char[]>(10);
         try {
             if (StringUtils.isEmpty(path)) path = DEFAULT_PATH;
             is = this.getClass().getClassLoader().getResourceAsStream(path);
             if (is == null) {
-                throw new RuntimeException("词频统计文件未找到!!");
+                throw new RuntimeException(path + ".......文件未找到!!");
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"), 512);
-            String theWord = null;
 
-            long i = 0;
+            String theWord = null;
             do {
-                if (i % 10000 == 0) {
-                    System.out.println("开始读取文件第:" + i + "行数据............");
-                }
                 theWord = br.readLine();
                 if (theWord != null && !"".equals(theWord.trim())) {
-                    cleanChars(theWord.trim().toCharArray());
+                    fileContents.add(theWord.trim().toCharArray());
                 }
-                i++;
-//                if (i > 10000) {
-//                    break;
-//                }
             } while (theWord != null);
         } catch (IOException ioe) {
-            System.err.println("读取词频统计文件出错.......................");
+            System.err.println("读取文件" + path + "出错.......................");
             ioe.printStackTrace();
         } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                    is = null;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            this.close(is);
         }
-        return contents;
+        return fileContents;
+    }
+
+    private void close(InputStream is) {
+        try {
+            if (is != null) {
+                is.close();
+                is = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void cleanChars(char[] lineChars) {

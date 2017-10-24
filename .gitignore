@@ -1,0 +1,16 @@
+# ---> Idea
+.idea/
+build/
+classes/
+*.iml
+
+# ---> Java
+*.class
+
+# ---> mvn
+target/
+
+# Package Files #
+*.jar
+*.war
+*.ear
