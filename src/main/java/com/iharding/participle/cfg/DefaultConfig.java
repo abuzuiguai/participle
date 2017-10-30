@@ -8,10 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by fyeman on 2017/9/29.
@@ -28,32 +25,41 @@ public class DefaultConfig implements Configuration {
     Segment segment;
 
     public List<Character[]> loadAnalyticalFile(String path) {
-        List<char[]> fileContents = readFileContents(path);
+        List<String> fileContents = readFileContents(path);
         int i = 0;
         int length = fileContents.size();
         for (i = 0; i < length; i++) {
-            cleanChars(fileContents.get(i));
+//            if (i > 0 && i % 1000 == 0) {
+//                break;
+//            }
+            cleanChars(fileContents.get(i).toCharArray());
         }
         return contents;
     }
 
     public Segment loadMainDict(String path) {
-        List<char[]> fileContents = readFileContents(path);
+        List<String> fileContents = readFileContents(path);
         int i = 0;
         int length = fileContents.size();
 
         segment = new Segment(Character.valueOf('0'));
+        String[] line_string;
         char[] chars;
         for (i = 0; i < length; i++) {
-            chars = fileContents.get(i);
-            segment.fill(chars, 0, chars.length);
+            line_string = org.apache.commons.lang3.StringUtils.split(fileContents.get(i), "\\|");
+            chars = line_string[0].toCharArray();
+            if (line_string.length > 1) {
+                segment.fill(segment, chars, 0, chars.length, Float.parseFloat(line_string[1]));
+            } else {
+                segment.fill(segment, chars, 0, chars.length);
+            }
         }
         return segment;
     }
 
-    public List<char[]> readFileContents(String path) {
+    public List<String> readFileContents(String path) {
         InputStream is = null;
-        List<char[]> fileContents = new ArrayList<char[]>(10);
+        List<String> fileContents = new ArrayList<String>(10);
         try {
             if (StringUtils.isEmpty(path)) path = DEFAULT_PATH;
             is = this.getClass().getClassLoader().getResourceAsStream(path);
@@ -66,7 +72,7 @@ public class DefaultConfig implements Configuration {
             do {
                 theWord = br.readLine();
                 if (theWord != null && !"".equals(theWord.trim())) {
-                    fileContents.add(theWord.trim().toCharArray());
+                    fileContents.add(theWord.trim());
                 }
             } while (theWord != null);
         } catch (IOException ioe) {
@@ -91,13 +97,6 @@ public class DefaultConfig implements Configuration {
 
     private void cleanChars(char[] lineChars) {
         List<Character> chineseCharsList = new ArrayList<>();
-//        if (isLastCharChinese && CharacterUtil.identifyCharType(lineChars[0]) == CharacterUtil.CHAR_CHINESE) {
-//            Character[] lineLastChars = contents.get(contents.size() - 1);
-//            for (int i = 0; i < lineLastChars.length; i++) {
-//                chineseCharsList.add(lineLastChars[i]);
-//            }
-//            contents.remove(contents.size() - 1);
-//        }
         peelChineseChars(lineChars, chineseCharsList);
     }
 

@@ -5,6 +5,7 @@ import java.util.Map;
 
 /**
  * Created by fyeman on 2017/10/16.
+ * 读取语料库，将每个字左右相邻保存，包括频次
  */
 public class CHNCharacterUtil {
     private Map<Character, CHNCharacter> words = new HashMap<>(100, 0.75f);

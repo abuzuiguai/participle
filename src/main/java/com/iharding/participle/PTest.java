@@ -71,7 +71,7 @@ public class PTest {
 //        System.out.println("总耗时:........." + (end - start));
 
         PTest pTest = new PTest();
-        pTest.participle();
+//        pTest.participle();
     }
 
     public void loadFromDict() {
@@ -85,23 +85,7 @@ public class PTest {
         System.out.println("总耗时:........." + (end - start));
     }
 
-    public void participle() {
-        long start = System.currentTimeMillis();
 
-        Configuration configuration = new DefaultConfig();
-        Segment segment = configuration.loadMainDict("main2012.dic");
-
-        ParticipleToken token = new ParticipleToken(new StringReader("人生就是一列开往坟墓的列车路途上会有很多站很难有人可以自始至终陪着走完当陪你的人要下车时即使不舍也该心存感激然后挥手道别"), segment);
-        while (token.hasNext()) {
-            Lexeme lexeme = token.next();
-        }
-
-        token.end();
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("总耗时:........." + (end - start));
-    }
 
     public void loadFromMongo() {
         List<ServerAddress> addresses = new ArrayList<ServerAddress>();

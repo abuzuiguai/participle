@@ -11,9 +11,13 @@ import java.util.Map;
 public class AnalyzeContext {
     private ObjectMapper mapper = new ObjectMapper();
     private double FREQUENCY_THRESHOLD = 0.1;
-    private float COUNT_THRESHOLD = 100;
-    private float LESS_COUNT = 3f;
+    private float COUNT_THRESHOLD = 100000;
+    private float LESS_COUNT = 1f;
 
+    /**
+     * 设定阀值删除低于阀值的左右邻数据
+     * @param words
+     */
     public void analyzeCHNCharacter(Map<Character, CHNCharacter> words) {
         CHNCharacter CHNChar;
         CHNCharacter rightCHNChar;
@@ -27,9 +31,6 @@ public class AnalyzeContext {
                 rightCHNChar = words.get(rightEntry.getKey());
                 if (rightEntry.getValue() == null || rightCHNChar.getLeft().get(entry.getKey()) == null || rightEntry.getValue() < LESS_COUNT) {
                     continue;
-                }
-                if (entry.getKey() == '下' && rightEntry.getKey() == '胀') {
-                    System.out.println("下" + CHNChar.getCount() + "   胀" + rightEntry.getValue());
                 }
                 if (rightEntry.getValue() / CHNChar.getCount() >= FREQUENCY_THRESHOLD || rightEntry.getValue() >= COUNT_THRESHOLD
                         || rightCHNChar.getLeft().get(entry.getKey()) / rightCHNChar.getCount() >= FREQUENCY_THRESHOLD || rightCHNChar.getLeft().get(entry.getKey()) >= COUNT_THRESHOLD
