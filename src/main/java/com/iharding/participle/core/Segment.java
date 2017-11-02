@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by fyeman on 2017/10/18.
+ * 词典树
  */
 public class Segment {
 
@@ -78,5 +78,13 @@ public class Segment {
 
     public Map<Character, Segment> getSegmentMap() {
         return this.segment_map;
+    }
+
+    public float getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(float threshold) {
+        this.threshold = threshold;
     }
 }

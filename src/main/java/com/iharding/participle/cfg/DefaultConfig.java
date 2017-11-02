@@ -16,8 +16,6 @@ import java.util.*;
 public class DefaultConfig implements Configuration {
     private static final String DEFAULT_PATH = "patient.txt";
     private List<Character[]> contents = new ArrayList<Character[]>();
-    private boolean isLastCharChinese = false;
-
 
     private Map<Integer, Character> chars = new HashMap<Integer, Character>(100, 0.75f);
     private Integer charsKey;
@@ -100,6 +98,12 @@ public class DefaultConfig implements Configuration {
         peelChineseChars(lineChars, chineseCharsList);
     }
 
+    /**
+     * 截取中文语句
+     *
+     * @param lineChars
+     * @param chineseCharsList
+     */
     private void peelChineseChars(char[] lineChars, List<Character> chineseCharsList) {
         int i = 0;
         for (i = 0; i < lineChars.length; i++) {
@@ -111,25 +115,21 @@ public class DefaultConfig implements Configuration {
                 chineseCharsList.add(chars.get(charsKey));
             } else {
                 if (chineseCharsList.size() > 0) {
-                    Character[] chineseChars = new Character[chineseCharsList.size()];
-                    chineseCharsList.toArray(chineseChars);
-                    contents.add(chineseChars);
+                    this.addChineseChars(chineseCharsList);
                     chineseCharsList = new ArrayList<>();
                 }
             }
-
             if (i == lineChars.length - 1) {
-                if (CharacterUtil.identifyCharType(lineChars[i]) != CharacterUtil.CHAR_CHINESE) {
-                    isLastCharChinese = false;
-                } else {
-                    if (chineseCharsList.size() > 0) {
-                        Character[] chineseChars = new Character[chineseCharsList.size()];
-                        chineseCharsList.toArray(chineseChars);
-                        contents.add(chineseChars);
-                    }
-                    isLastCharChinese = true;
+                if (chineseCharsList.size() > 0) {
+                    this.addChineseChars(chineseCharsList);
                 }
             }
         }
+    }
+
+    private void addChineseChars(List<Character> chineseCharsList) {
+        Character[] chineseChars = new Character[chineseCharsList.size()];
+        chineseCharsList.toArray(chineseChars);
+        contents.add(chineseChars);
     }
 }

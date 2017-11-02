@@ -1,6 +1,5 @@
 package com.iharding.participle.core;
 
-import com.iharding.participle.dijkstra.LexemePath;
 import com.iharding.participle.util.CharacterUtil;
 
 import java.io.IOException;
@@ -9,7 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Created by Administrator on 2017/10/27.
+ * 分词原则 1、最大长度
+ *          2、相同长度频次排序
  */
 public class ParticipleToken {
     private int BUFFER_SIZE = 4096;
@@ -27,6 +27,8 @@ public class ParticipleToken {
     //依据句子段落划分后游标位置
     private int offset = 0;
     private int part_start = 0;
+    //词频次
+    private float threshold;
 
     private Reader reader;
     private Segment segment;
@@ -74,7 +76,7 @@ public class ParticipleToken {
             if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_CHINESE
                     || CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_USELESS
                     || CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_OTHER_HALF) {
-                this.matchCHN(segment, offset, 0, part_length, true);
+                this.matchCHN(segment, offset, 0, part_length, false);
                 //最大长度重新计算当前分词是否合理
                 this.validate(begin, offset - begin, part_length);
             } else if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_ARABIC) {
@@ -104,7 +106,15 @@ public class ParticipleToken {
         this.addLexeme(part_start + begin, offset - begin);
     }
 
-    private void matchCHN(Segment s, int begin, int length, int part_length, boolean increased) {
+    /**
+     *
+     * @param s
+     * @param begin
+     * @param length
+     * @param part_length
+     * @param status   递归标示，部分字打头的词在字典中有可能不存在，此时应认为该字是一个词，offset+1，进入递归方法前将值设置为true
+     */
+    private void matchCHN(Segment s, int begin, int length, int part_length, boolean status) {
         if (begin == part_length) {
             this.offset = begin;
             return;
@@ -112,7 +122,8 @@ public class ParticipleToken {
         Character character = Character.valueOf(part_buffer[begin]);
         Segment character_segment = s.getSegmentMap().get(character);
         if (character_segment != null) {
-            matchCHN(character_segment, begin + 1, length + 1, part_length, increased);
+            status = true;
+            matchCHN(character_segment, begin + 1, length + 1, part_length, status);
         } else {
             if (s.isLexeme() == false && length > 1) {//不成词进行回溯
                 do {
@@ -121,29 +132,43 @@ public class ParticipleToken {
                     length--;
                 } while (s != null && s.isLexeme() == false && length > 1);
             }
-            if (this.offset == begin && increased) { //字典库不存在该字 且不是unit_segment
+            if (!status) { //字典库不存在该字 且不是unit_segment
                 this.offset++;
             } else {
                 this.offset = begin;
             }
+            //保存词频数据，便于最大长度相同时 按词频排序
+            this.threshold = s.getThreshold();
         }
     }
 
+    /**
+     * 分词规则：1、最大词长度匹配
+     *           2、相同词长度 按频次优先
+     * @param begin
+     * @param length
+     * @param part_length
+     */
     private void validate(int begin, int length, int part_length) {
         //因为再次去按最长匹配度查找会改变offset的值，因此先保存当前offset
         int o_offset = this.offset;
+        float o_threshold = this.threshold;
         int o_begin = begin;
         int max_length = length;
-        int max_begin = begin;
+        int max_begin = this.offset;
         while (o_begin < o_offset - 1) {
             o_begin++;
-            this.matchCHN(segment, o_begin, 0, part_length, true);
+            this.matchCHN(segment, o_begin, 0, part_length, false);
             if (this.offset - o_begin > max_length) {
                 max_length = this.offset - o_begin;
                 max_begin = o_begin;
+            } else if (this.offset - o_begin == max_length) {
+                if (this.threshold > o_threshold) {
+                    max_begin = o_begin;
+                }
             }
         }
-        if (max_length > length) {
+        if (max_length >= length) {
             this.offset = max_begin;
         } else {
             this.offset = o_offset; //再次去最长匹配后会修改offset值，因此需要还原offset

@@ -1,7 +1,7 @@
 package com.iharding.participle.core;
 
 /**
- * Created by Administrator on 2017/10/23.
+ * 词元定义.
  */
 public class Lexeme implements Comparable<Lexeme> {
     private int offset = 0;
@@ -9,6 +9,8 @@ public class Lexeme implements Comparable<Lexeme> {
 
     private String text;
     private String type;
+
+    private float threshold;
 
     public Lexeme(int offset, int length) {
         this.offset = offset;
@@ -44,6 +46,12 @@ public class Lexeme implements Comparable<Lexeme> {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public float getThreshold() { return threshold; }
+
+    public void setThreshold(float threshold) {
+        this.threshold = threshold;
     }
 
     public int compareTo(Lexeme o) {

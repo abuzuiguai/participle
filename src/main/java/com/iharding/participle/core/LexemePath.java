@@ -1,4 +1,4 @@
-package com.iharding.participle.dijkstra;
+package com.iharding.participle.core;
 
 import java.util.ArrayList;
 

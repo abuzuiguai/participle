@@ -8,17 +8,18 @@ import java.util.Map;
 /**
  * Created by fyeman on 2017/9/29.
  */
-public class AnalyzeContext {
+public class CHNCharacterFilter {
     private ObjectMapper mapper = new ObjectMapper();
-    private double FREQUENCY_THRESHOLD = 0.1;
+    private double FREQUENCY_THRESHOLD = 0.01;
     private float COUNT_THRESHOLD = 100000;
     private float LESS_COUNT = 1f;
 
     /**
      * 设定阀值删除低于阀值的左右邻数据
+     *
      * @param words
      */
-    public void analyzeCHNCharacter(Map<Character, CHNCharacter> words) {
+    public void filter(Map<Character, CHNCharacter> words) {
         CHNCharacter CHNChar;
         CHNCharacter rightCHNChar;
         Map<Character, Float> rightCharMap;
@@ -29,22 +30,20 @@ public class AnalyzeContext {
             rightFilterCharMap = new HashMap<Character, Float>(100, 0.75f);
             for (Map.Entry<Character, Float> rightEntry : rightCharMap.entrySet()) {
                 rightCHNChar = words.get(rightEntry.getKey());
-                if (rightEntry.getValue() == null || rightCHNChar.getLeft().get(entry.getKey()) == null || rightEntry.getValue() < LESS_COUNT) {
+                if (rightEntry.getValue() == null || rightCHNChar.getLeft().get(entry.getKey()) == null
+                        || rightEntry.getValue() < LESS_COUNT) {
                     continue;
                 }
                 if (rightEntry.getValue() / CHNChar.getCount() >= FREQUENCY_THRESHOLD || rightEntry.getValue() >= COUNT_THRESHOLD
-                        || rightCHNChar.getLeft().get(entry.getKey()) / rightCHNChar.getCount() >= FREQUENCY_THRESHOLD || rightCHNChar.getLeft().get(entry.getKey()) >= COUNT_THRESHOLD
+                        || rightCHNChar.getLeft().get(entry.getKey()) / rightCHNChar.getCount() >= FREQUENCY_THRESHOLD
+                        || rightCHNChar.getLeft().get(entry.getKey()) >= COUNT_THRESHOLD
                         ) {
                     rightFilterCharMap.put(rightEntry.getKey(), rightEntry.getValue());
                 }
             }
             CHNChar.setRight(rightFilterCharMap);
             entry.setValue(CHNChar);
-            try {
-//                System.out.println(String.valueOf(entry.getKey() + ":") + mapper.writeValueAsString(entry.getValue().getRight()));
-            }catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 }
+

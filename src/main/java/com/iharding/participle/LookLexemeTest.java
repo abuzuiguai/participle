@@ -2,8 +2,8 @@ package com.iharding.participle;
 
 import com.iharding.participle.cfg.Configuration;
 import com.iharding.participle.cfg.DefaultConfig;
-import com.iharding.participle.core.AnalyzeContext;
 import com.iharding.participle.core.CHNCharacter;
+import com.iharding.participle.core.CHNCharacterFilter;
 import com.iharding.participle.core.CHNCharacterUtil;
 import com.iharding.participle.core.ParticipleContext;
 import com.iharding.participle.jdbc.MysqlJdbc;
@@ -32,8 +32,8 @@ public class LookLexemeTest {
         }
 
         Map<Character, CHNCharacter> words = CHNCharUtil.getWords();
-        AnalyzeContext context = new AnalyzeContext();
-        context.analyzeCHNCharacter(words);
+        CHNCharacterFilter CHNCharFilter = new CHNCharacterFilter();
+        CHNCharFilter.filter(words);
 
         ParticipleContext participleContext = new ParticipleContext(words);
         for (i = 0; i < size; i++) {

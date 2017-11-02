@@ -12,8 +12,6 @@ public class CharacterUtil {
 
     public static final int CHAR_OTHER_HALF = 0X00000008;
 
-    private static int search_index = -1;
-
     public static int identifyCharType(char input) {
         if (input >= '0' && input <= '9') {
             return CHAR_ARABIC;
@@ -33,24 +31,5 @@ public class CharacterUtil {
         }
         //其他的不做处理的字符
         return CHAR_USELESS;
-    }
-
-    /**
-     * 进行字符规格化（全角转半角，大写转小写处理）
-     *
-     * @param input
-     * @return char
-     */
-    public static char regularize(char input) {
-        if (input == 12288) {
-            input = (char) 32;
-
-        } else if (input > 65280 && input < 65375) {
-            input = (char) (input - 65248);
-
-        } else if (input >= 'A' && input <= 'Z') {
-            input += 32;
-        }
-        return input;
     }
 }

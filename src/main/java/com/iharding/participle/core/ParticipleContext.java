@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by fyeman on 2017/10/16.
+ * 基于语料库，频次抽取常见词元
  */
 public class ParticipleContext {
     private Map<Character, CHNCharacter> words;
@@ -37,10 +37,6 @@ public class ParticipleContext {
     }
 
     public void start(Character[] chars) {
-
-        if (StringUtils.join(chars, "").equals("中纵隔软组织团块")) {
-            System.out.println(StringUtils.join(chars, ""));
-        }
         chars_length = chars.length;
         if (chars_length == 1) return;
         this.init();
