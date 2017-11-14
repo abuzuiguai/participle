@@ -27,26 +27,26 @@ public class MysqlJdbc {
         return conn;
     }
 
-    public List<Map.Entry<String, Float>> search(String sql) {
+    public List<LexiconFinal> search(String sql) {
         Connection conn = connect();
         if (conn == null) return null;
-        Map<String, Float> map = new HashMap<>();
 
-        List<Map.Entry<String, Float>> list = null;
+        List<LexiconFinal> list = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
             ResultSet result = stmt.executeQuery(sql);
             while (result.next()) {
-                map.put(result.getString(2), result.getFloat(3));
+                LexiconFinal lexiconFinal = new LexiconFinal();
+                lexiconFinal.setName(result.getString(2));
+                lexiconFinal.setThreshold(result.getFloat(3));
+                lexiconFinal.setNegative(result.getString(5));
+                list.add(lexiconFinal);
             }
-
-            list = new ArrayList<>(map.entrySet());
-
-            Collections.sort(list, new Comparator<Map.Entry<String, Float>>() {
-                public int compare(Map.Entry<String, Float> o1, Map.Entry<String, Float> o2) {
-                    return (o1.getKey()).toString().compareTo(o2.getKey());
-                }
-            });
+//            Collections.sort(list, new Comparator<Map.Entry<String, Float>>() {
+//                public int compare(Map.Entry<String, Float> o1, Map.Entry<String, Float> o2) {
+//                    return (o1.getKey()).toString().compareTo(o2.getKey());
+//                }
+//            });
         } catch (SQLException sqle) {
             sqle.printStackTrace();
         }
@@ -66,6 +66,18 @@ public class MysqlJdbc {
                     stmt.executeUpdate(sql);
                 }
             }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
+        this.close(conn);
+    }
+
+    public void save(String sql) {
+        Connection conn = connect();
+        if (conn == null) return;
+        try {
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate(sql);
         } catch (SQLException sqle) {
             sqle.printStackTrace();
         }

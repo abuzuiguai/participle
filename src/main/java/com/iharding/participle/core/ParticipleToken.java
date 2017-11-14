@@ -18,8 +18,10 @@ public class ParticipleToken {
     //符号分段
     private char[] part_buffer = new char[256];
 
-    private char[] join_symbols = new char[]{'-','/','.'};
-    private char[] un_join_symbols = new char[]{',',':','?',';','。','，','：','；'};
+    private char[] join_symbols = new char[]{'-','/','.','*'};
+    private char[] un_join_symbols = new char[]{',',':','?',';','。','，','：','；','"','“','”','\n','\r'};
+
+    private char[] part_symbols = new char[]{'。',';','；','?','"','“','”'};
     //数据包总长度
     private int available;
     //当前位置游标，针对buffer数据包
@@ -29,6 +31,8 @@ public class ParticipleToken {
     private int part_start = 0;
     //词频次
     private float threshold;
+    //词性
+    private String property;
 
     private Reader reader;
     private Segment segment;
@@ -54,10 +58,25 @@ public class ParticipleToken {
             if (position > -1) {
                 System.arraycopy(buffer, part_start, part_buffer, 0, cursor - part_start);
                 this.next(0, cursor - part_start);
+
+                Lexeme lexeme = new Lexeme(cursor, 1);
+                char[] chars = new char[lexeme.getLength()];
+                System.arraycopy(buffer, lexeme.getOffset(), chars, 0, lexeme.getLength());
+                lexeme.setText(String.valueOf(chars));
+
+                position = Arrays.binarySearch(part_symbols, buffer[cursor]);
+                if (position > -1) {
+                    lexeme.setFlag("-1"); //成句 '。',';','；','?'
+                } else {
+                    lexeme.setFlag("-2"); // ',','，',':','：'
+                }
+                lexemePath.add(lexeme);
                 //段落分割符单独成词
-                this.addLexeme(cursor, 1);
+//                this.addLexeme(cursor, 1);
                 //下次起始位置调整到分割符之后
                 part_start = cursor + 1;
+
+
                 this.clear();
             }
             cursor++;
@@ -97,7 +116,7 @@ public class ParticipleToken {
                     || position > -1) {
                 offset ++;
             } else if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_CHINESE) {    //数字后跟中文单位
-                this.matchCHN(unit_segment, offset, 0, part_length, false);
+                this.matchCHN(unit_segment, offset, 0, part_length, true);
                 break;
             } else {
                 break;
@@ -115,10 +134,10 @@ public class ParticipleToken {
      * @param status   递归标示，部分字打头的词在字典中有可能不存在，此时应认为该字是一个词，offset+1，进入递归方法前将值设置为true
      */
     private void matchCHN(Segment s, int begin, int length, int part_length, boolean status) {
-        if (begin == part_length) {
-            this.offset = begin;
-            return;
-        }
+//        if (begin == part_length) {
+//            this.offset = begin;
+//            return;
+//        }
         Character character = Character.valueOf(part_buffer[begin]);
         Segment character_segment = s.getSegmentMap().get(character);
         if (character_segment != null) {
@@ -139,6 +158,7 @@ public class ParticipleToken {
             }
             //保存词频数据，便于最大长度相同时 按词频排序
             this.threshold = s.getThreshold();
+            this.property = s.getProperty();
         }
     }
 
@@ -156,18 +176,24 @@ public class ParticipleToken {
         int o_begin = begin;
         int max_length = length;
         int max_begin = this.offset;
+        //词性会被递归覆盖，需要先保存
+        String property = this.property;
         while (o_begin < o_offset - 1) {
             o_begin++;
             this.matchCHN(segment, o_begin, 0, part_length, false);
             if (this.offset - o_begin > max_length) {
                 max_length = this.offset - o_begin;
                 max_begin = o_begin;
+                property = this.property;
             } else if (this.offset - o_begin == max_length) {
                 if (this.threshold > o_threshold) {
                     max_begin = o_begin;
+                    property = this.property;
                 }
             }
         }
+        //还原词性
+        this.property = property;
         if (max_length >= length) {
             this.offset = max_begin;
         } else {
@@ -181,6 +207,7 @@ public class ParticipleToken {
         char[] chars = new char[lexeme.getLength()];
         System.arraycopy(buffer, lexeme.getOffset(), chars, 0, lexeme.getLength());
         lexeme.setText(String.valueOf(chars));
+        lexeme.setProperty(this.property);
         lexemePath.add(lexeme);
     }
 

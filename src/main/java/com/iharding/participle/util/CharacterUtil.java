@@ -16,7 +16,7 @@ public class CharacterUtil {
         if (input >= '0' && input <= '9') {
             return CHAR_ARABIC;
         } else if ((input >= 'a' && input <= 'z')
-                || (input >= 'A' && input <= 'Z')) {
+                || (input >= 'A' && input <= 'Z') || input == 'μ') {
             return CHAR_ENGLISH;
         } else {
             Character.UnicodeBlock ub = Character.UnicodeBlock.of(input);

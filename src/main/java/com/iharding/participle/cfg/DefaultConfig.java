@@ -47,7 +47,7 @@ public class DefaultConfig implements Configuration {
             line_string = org.apache.commons.lang3.StringUtils.split(fileContents.get(i), "\\|");
             chars = line_string[0].toCharArray();
             if (line_string.length > 1) {
-                segment.fill(segment, chars, 0, chars.length, Float.parseFloat(line_string[1]));
+                segment.fill(segment, chars, 0, chars.length, Float.parseFloat(line_string[1]), line_string[2]);
             } else {
                 segment.fill(segment, chars, 0, chars.length);
             }

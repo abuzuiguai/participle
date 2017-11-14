@@ -17,6 +17,8 @@ public class Segment {
     private boolean isLexeme = false;
     //频次
     private float threshold = 0f;
+    //词性
+    private String property;
 
     private Segment parent;
 
@@ -25,10 +27,10 @@ public class Segment {
     }
 
     public void fill(Segment s, char[] chars, int cursor, int length) {
-        this.fill(s, chars, cursor, length, 0f);
+        this.fill(s, chars, cursor, length, 0f, "99");
     }
 
-    public void fill(Segment s, char[] chars, int cursor, int length, float threshold) {
+    public void fill(Segment s, char[] chars, int cursor, int length, float threshold, String property) {
         Character c_char = Character.valueOf(chars[cursor]);
         if (Constants.chn_chars_map.get(c_char) == null) {
             Constants.chn_chars_map.put(c_char, c_char);
@@ -39,10 +41,11 @@ public class Segment {
         if (segment != null) {
             segment.setParent(s);
             if (length > 1) {
-                segment.fill(segment, chars, cursor + 1, length - 1, threshold);
+                segment.fill(segment, chars, cursor + 1, length - 1, threshold, property);
             } else {
                 segment.isLexeme = true;
                 segment.threshold = threshold;
+                segment.property = property;
                 segment_map.put(c_char, segment);
             }
         }
@@ -86,5 +89,13 @@ public class Segment {
 
     public void setThreshold(float threshold) {
         this.threshold = threshold;
+    }
+
+    public String getProperty() {
+        return property;
+    }
+
+    public void setProperty(String property) {
+        this.property = property;
     }
 }
