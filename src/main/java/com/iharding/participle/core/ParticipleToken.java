@@ -58,7 +58,7 @@ public class ParticipleToken {
             if (position > -1) {
                 System.arraycopy(buffer, part_start, part_buffer, 0, cursor - part_start);
                 this.next(0, cursor - part_start);
-
+                //标点符号单独成词
                 Lexeme lexeme = new Lexeme(cursor, 1);
                 char[] chars = new char[lexeme.getLength()];
                 System.arraycopy(buffer, lexeme.getOffset(), chars, 0, lexeme.getLength());
@@ -79,6 +79,11 @@ public class ParticipleToken {
 
                 this.clear();
             }
+            //最后一个字符不是标点符号处理
+            if (cursor == available - 1 && position < 0) {
+                System.arraycopy(buffer, part_start, part_buffer, 0, available - part_start);
+                this.next(0, available - part_start);
+            }
             cursor++;
         }
 
@@ -92,6 +97,9 @@ public class ParticipleToken {
 
     private void next(int begin, int part_length) {
         while(offset < part_length) {
+            this.property = null;
+            this.threshold = 0.0f;
+
             if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_CHINESE
                     || CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_USELESS
                     || CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_OTHER_HALF) {
@@ -101,7 +109,15 @@ public class ParticipleToken {
             } else if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_ARABIC) {
                 this.matchARABIC(begin, part_length);
             } else if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_ENGLISH) {
-                this.matchARABIC(begin, part_length);
+                //先依据词库是否成词判断
+                this.matchCHN(segment, offset, 0, part_length, false);
+                //不成词所有英文字符拼接
+                if (offset - begin <= 1) {
+                    offset = begin;
+                    this.matchARABIC(begin, part_length);
+                } else {
+                    this.addLexeme(part_start + begin, offset - begin);
+                }
             }
             begin = offset;
         }
@@ -116,7 +132,7 @@ public class ParticipleToken {
                     || position > -1) {
                 offset ++;
             } else if (CharacterUtil.identifyCharType(part_buffer[offset]) == CharacterUtil.CHAR_CHINESE) {    //数字后跟中文单位
-                this.matchCHN(unit_segment, offset, 0, part_length, true);
+//                this.matchCHN(unit_segment, offset, 0, part_length, true);
                 break;
             } else {
                 break;
@@ -134,32 +150,36 @@ public class ParticipleToken {
      * @param status   递归标示，部分字打头的词在字典中有可能不存在，此时应认为该字是一个词，offset+1，进入递归方法前将值设置为true
      */
     private void matchCHN(Segment s, int begin, int length, int part_length, boolean status) {
-//        if (begin == part_length) {
-//            this.offset = begin;
-//            return;
-//        }
+        if (begin == part_length) {
+            this.cutLexeme(s, begin, length, status);
+            return;
+        }
         Character character = Character.valueOf(part_buffer[begin]);
         Segment character_segment = s.getSegmentMap().get(character);
         if (character_segment != null) {
             status = true;
             matchCHN(character_segment, begin + 1, length + 1, part_length, status);
         } else {
-            if (s.isLexeme() == false && length > 1) {//不成词进行回溯
-                do {
-                    s = s.parent();
-                    begin--;
-                    length--;
-                } while (s != null && s.isLexeme() == false && length > 1);
-            }
-            if (!status) { //字典库不存在该字 且不是unit_segment
-                this.offset++;
-            } else {
-                this.offset = begin;
-            }
-            //保存词频数据，便于最大长度相同时 按词频排序
-            this.threshold = s.getThreshold();
-            this.property = s.getProperty();
+            this.cutLexeme(s, begin, length, status);
         }
+    }
+
+    private void cutLexeme(Segment s, int begin, int length, boolean status) {
+        if (s.isLexeme() == false && length > 1) {//不成词进行回溯
+            do {
+                s = s.parent();
+                begin--;
+                length--;
+            } while (s != null && s.isLexeme() == false && length > 1);
+        }
+        if (!status) { //字典库不存在该字 且不是unit_segment
+            this.offset++;
+        } else {
+            this.offset = begin;
+        }
+        //保存词频数据，便于最大长度相同时 按词频排序
+        this.threshold = s.getThreshold();
+        this.property = s.getProperty();
     }
 
     /**
@@ -195,11 +215,21 @@ public class ParticipleToken {
         //还原词性
         this.property = property;
         if (max_length >= length) {
-            this.offset = max_begin;
+            if (max_begin != o_offset) {
+                this.offset = begin;
+                this.next(begin, max_begin);
+            } else {
+                this.offset = max_begin;
+                this.addLexeme(part_start + begin, offset - begin);
+            }
         } else {
             this.offset = o_offset; //再次去最长匹配后会修改offset值，因此需要还原offset
+            this.addLexeme(part_start + begin, offset - begin);
         }
-        this.addLexeme(part_start + begin, offset - begin);
+
+//        if (max_length >= length) {
+//            this.next(begin, max_begin);
+//        }
     }
 
     private void addLexeme(int begin, int length) {

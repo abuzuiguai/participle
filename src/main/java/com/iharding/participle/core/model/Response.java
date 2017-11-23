@@ -1,5 +1,7 @@
 package com.iharding.participle.core.model;
 
+import com.iharding.participle.jdbc.LexiconDict;
+
 import java.util.List;
 
 /**
@@ -7,6 +9,8 @@ import java.util.List;
  */
 public class Response {
     private String structure = "";
+
+    private List<LexiconDict> dicts;
 
     private List<Symptom> symptoms;
     private List<Vital> vitals;
@@ -42,5 +46,13 @@ public class Response {
 
     public void setPacses(List<Pacs> pacses) {
         this.pacses = pacses;
+    }
+
+    public List<LexiconDict> getDicts() {
+        return dicts;
+    }
+
+    public void setDicts(List<LexiconDict> dicts) {
+        this.dicts = dicts;
     }
 }

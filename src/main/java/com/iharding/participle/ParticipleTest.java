@@ -24,7 +24,7 @@ public class ParticipleTest {
 
         Segment unit_segment = configuration.loadMainDict("quantifier.dic");
 
-        ParticipleToken token = new ParticipleToken(new StringReader("(次/分),"), segment, unit_segment);
+        ParticipleToken token = new ParticipleToken(new StringReader("双下肢水肿了，双下肢无水肿了"), segment, unit_segment);
         token.start();
 
         MysqlJdbc mysqlJdbc = new MysqlJdbc();

@@ -79,7 +79,7 @@ public class CaseToken {
                     this.reflect(symptom, "cause", lexeme.getText());
                     break;
                 case DEEP:
-                    this.reflect(symptom, "deep", lexeme.getText());
+//                    this.reflect(symptom, "deep", lexeme.getText());
                     break;
                 case PROPERTY:
                     this.reflect(symptom, "property", lexeme.getText());

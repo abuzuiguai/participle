@@ -42,11 +42,29 @@ public class MysqlJdbc {
                 lexiconFinal.setNegative(result.getString(5));
                 list.add(lexiconFinal);
             }
-//            Collections.sort(list, new Comparator<Map.Entry<String, Float>>() {
-//                public int compare(Map.Entry<String, Float> o1, Map.Entry<String, Float> o2) {
-//                    return (o1.getKey()).toString().compareTo(o2.getKey());
-//                }
-//            });
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
+        this.close(conn);
+        return list;
+    }
+
+    public List<LexiconDict> searchLexiconDict(String sql) {
+        Connection conn = connect();
+        if (conn == null) return null;
+
+        List<LexiconDict> list = new ArrayList<>();
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet result = stmt.executeQuery(sql);
+            while (result.next()) {
+                LexiconDict lexiconDict = new LexiconDict();
+                lexiconDict.setId(result.getInt(1));
+                lexiconDict.setName(result.getString(2));
+                lexiconDict.setColor(result.getString(3));
+                lexiconDict.setRemark(result.getString(4));
+                list.add(lexiconDict);
+            }
         } catch (SQLException sqle) {
             sqle.printStackTrace();
         }
